@@ -2,11 +2,13 @@ import express from "express";
 import path from "path";
 import http from "http";
 import { WebSocketServer } from "ws";
-import { Hub, User } from "./ws";
+import { Hub } from "./ws";
 const app = express();
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+const hub = Hub.getInstance();
+
 
 app.use(express.json());
 app.use(express.static(path.join(import.meta.dirname, "public")));
@@ -19,27 +21,36 @@ app.get("/game", (req, res) => {
   res.sendFile(path.join(import.meta.dirname, "public/game.html"));
 });
 
-app.get("/create:username", (req, res) => {
-  const {userId,roomId} =  Hub.getInstance().createRoom(req.params.username);
-  res.send(JSON.stringify({ message: "Created room" ,room : roomId, user:userId }));
-});
-
-app.get("/join:roomId", (req, res) => {
-  if (this.roomId) {
-    res.send(JSON.stringify({ message: "Room Doesn't Exist"}));
+app.post("/rooms", (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    res.status(400).json({ error: "username required" });
     return;
   }
-  const userId = Hub.getInstance().addUser(req.params.roomId,req.params.username);
-  res.send(JSON.stringify({ message: "Joined room" ,room : roomId, user:userId }));
+
+  const result = hub.createRoom(username);
+  res.json(result);
+});
+
+app.post("/rooms/:roomId/join", (req, res) => {
+  const { username } = req.body;
+  const { roomId } = req.params;
+
+  const result = hub.joinRoom(roomId, username);
+  if (!result) {
+    res.status(400).json({ error: "Room not found or full" });
+    return;
+  }
+
+  res.json(result);
 });
 
 
-wss.on("connection", (ws) => {
+wss.on("connection", (ws,req) => {
   const params = new URL(req.url, "http://localhost").searchParams;
   const userId = params.get("userId");
-  const roomId = params.get("roomId");
 
-  const user = Hub.getInstance().getUser(roomId,userId);
+  const user = hub.getUser(userId);
   if (!user) {
     ws.close();
     return;

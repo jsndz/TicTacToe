@@ -1,5 +1,3 @@
-
-
 export function generateId(username) {
         return username.trim() + Math.random().toFixed(2)*1000
 }
@@ -10,9 +8,11 @@ export function generateRoomId() {
 
 export class Hub {
     rooms = new Map();
+    players = new Map();
     static instance;
     constructor(){
         this.rooms = new Map();
+        this.players = new Map();
     }
     static getInstance(){
         if(this.instance == null){
@@ -23,10 +23,11 @@ export class Hub {
     createRoom(username) {
         const roomId = generateRoomId();
         const users = new Map();
-        const user = new User(username,roomId)
+        const user = new User(username,roomId);
+        this.players.set(user.userId,user)
         users.set(user.userId,user);
         this.rooms.set(roomId,users);
-        return roomId,user.userId;
+        return {roomId,userId:user.userId};
     }
 
     deleteRoom(id){
@@ -35,19 +36,21 @@ export class Hub {
 
     addUser(roomId,username){
         const room = this.rooms.get(roomId);
+        if(!room){
+            return;
+        }
         const user = new User(username,roomId)
 
         if (room.size >= 2) {
         //   user.send(JSON.stringify({ error: "Room full" }));
           return;
         }  
+        this.players.set(user.userId,user)
         room.set(user.userId, user);
         return user.userId;
     }
-    getUser(roomId,userId){
-        const room = this.rooms.get(roomId);
-        if (!room) return null;
-        return [...room.values()].find(user => user.id == userId) || null;
+    getUser(userId){
+        return this.players.get(userId);
     }
     getOtherUser(roomId,senderId){
         const users = this.rooms.get(roomId);
@@ -58,7 +61,7 @@ export class Hub {
           ) || null;
     }
     move(roomID,senderId,position){
-        const user = this.getOtherUser(roomID,senderId)
+        const user = this.getOtherUser(roomID,senderId);
         if (!user) return;
         user.ws.send(JSON.stringify({
             position:position,
@@ -86,6 +89,7 @@ export class User{
 
     attachWs(ws){
         this.ws = ws;
+        ws.user = this;
         ws.on("message",async(raw)=>{
             let data;
             try {
@@ -105,19 +109,20 @@ export class User{
 
             }
         })
+        ws.on("close", () => this.destroy());
+
     }
 
     destroy(){
-        this.ws.on("close",()=>{
             const hub = Hub.getInstance();
             const room = hub.rooms.get(this.roomId);
             if (!room) return;
-
+            hub.players.delete(this.userId)
             room.delete(this.userId);
             if (room.size === 0) {
             hub.deleteRoom(this.roomId);
             }
-        })
+        
     }
 
     send(payload){
