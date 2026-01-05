@@ -1,14 +1,14 @@
-import {  WebSocket } from "ws";
 
-function generateId(username) {
+
+export function generateId(username) {
         return username.trim() + Math.random().toFixed(2)*1000
 }
-function generateRoomId() {
+export function generateRoomId() {
     return  Math.random().toFixed(4)*1000
 }
 
 
-class Hub {
+export class Hub {
     rooms = new Map();
     static instance;
     constructor(){
@@ -20,27 +20,50 @@ class Hub {
         }
         return this.instance;
     }
-    createRoom(id) {
-        this.rooms.set(id,new Map());
+    createRoom(username) {
+        const roomId = generateRoomId();
+        const users = new Map();
+        const user = new User(username,roomId)
+        users.set(user.userId,user);
+        this.rooms.set(roomId,users);
+        return roomId,user.userId;
     }
 
     deleteRoom(id){
         this.rooms.delete(id)
     }
 
-    addUser(roomId,user){
-        this.rooms.get(roomId).set(user.id,user)
-    }
-    getUser(roomId ,userId){
-        this.rooms.get(roomId).get(userId)
-    }
-    move(roomID,recieverId,position){
-       const user = this.getUser(roomID,recieverId)
+    addUser(roomId,username){
+        const room = this.rooms.get(roomId);
+        const user = new User(username,roomId)
 
-       user.ws.send(JSON.stringify({
-        position:position,
-        user:user.username,
-       }))
+        if (room.size >= 2) {
+        //   user.send(JSON.stringify({ error: "Room full" }));
+          return;
+        }  
+        room.set(user.userId, user);
+        return user.userId;
+    }
+    getUser(roomId,userId){
+        const room = this.rooms.get(roomId);
+        if (!room) return null;
+        return [...room.values()].find(user => user.id == userId) || null;
+    }
+    getOtherUser(roomId,senderId){
+        const users = this.rooms.get(roomId);
+        if (!users) return null;
+
+        return [...users.values()].find(
+            user => user.userId !== senderId
+          ) || null;
+    }
+    move(roomID,senderId,position){
+        const user = this.getOtherUser(roomID,senderId)
+        if (!user) return;
+        user.ws.send(JSON.stringify({
+            position:position,
+            user:user.username,
+        }))
     }
 }
 
@@ -50,33 +73,51 @@ export class User{
 
     username = "";
     userId = "";
-    
-    
     roomId = "";
-    constructor(username,ws){
+    ws;
+    constructor(username,roomId){
         this.username = username;
-        this.ws = new WebSocket();
+        this.ws = null;
+
+        this.roomId = roomId;
         this.userId = generateId(username);
-        this.EventHandler();
+        
     }
 
-    events(){
-        this.ws.on("message",async(data)=>{
+    attachWs(ws){
+        this.ws = ws;
+        ws.on("message",async(raw)=>{
+            let data;
+            try {
+              data = JSON.parse(raw.toString());
+            } catch(error) {
+                console.log(error)
+              return;
+            }
+            
             switch (data.type) {
-                case "join":
-                    // check roomId and add the userId to the room 
-                    // only two members are allowed
-                case "create":
-                    // create a room and add the user to the room id
-
                 case "movement":
                     // take the user move and send it to the other person
+                    if (!this.roomId) return;
+
+                    Hub.getInstance().move(this.roomId,this.userId,data.payload.position);
+                    break;
+
             }
         })
     }
 
     destroy(){
-        
+        this.ws.on("close",()=>{
+            const hub = Hub.getInstance();
+            const room = hub.rooms.get(this.roomId);
+            if (!room) return;
+
+            room.delete(this.userId);
+            if (room.size === 0) {
+            hub.deleteRoom(this.roomId);
+            }
+        })
     }
 
     send(payload){
