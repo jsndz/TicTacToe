@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import http from "http";
 import { WebSocketServer } from "ws";
-import { Hub } from "./ws";
+import { Hub } from "./ws.js";
 const app = express();
 
 const server = http.createServer(app);
@@ -63,5 +63,5 @@ wss.on("connection", (ws,req) => {
 });
 
 app.listen(3000, () => {
-  console.log("Server running in 3000");
+  console.log("Server running in http://localhost:3000");
 });

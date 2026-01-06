@@ -1,4 +1,3 @@
-let currentPlayer = 'X';
 let winner = document.getElementById('winner');
 let gamestate =['','','','','','','','',''];
 let winningCondition =
@@ -12,6 +11,23 @@ let winningCondition =
     [0,4,8],
     [2,4,6]
 ]
+
+
+
+const userId = new URLSearchParams(window.location.search).get('userId');
+
+const ws =  new WebSocket(`ws://localhost:3000/${userId}`)
+
+ws.onmessage = (ev)=>{
+    // position:position,
+    // user:user.username,
+    // symbol:symbol
+    const data  = JSON.parse(ev.data);
+    gamestate[data.position] = data.symbol;
+    
+}
+
+
 //initial
 function initial(){
     var tdcells= document.getElementsByTagName('td');
@@ -27,12 +43,10 @@ initial();
 //handle the click
 function clickHandler(){
     let td = event.target;
-    let index =td.getAttribute('index')
-    if(td.innerHTML ==''){
-    td.innerHTML= currentPlayer;
-    gamestate[index] = currentPlayer;
-
-    }
+    let position = td.getAttribute('index')
+    ws.send(JSON.stringify({
+        position
+    }))
     checkwinner();
     draw();
     changePlayer();
@@ -65,3 +79,6 @@ function draw(){
         winner.innerHTML="DRAW";
     }
 }
+
+
+

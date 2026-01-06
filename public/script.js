@@ -1,18 +1,35 @@
-document.getElementById("join-btn").addEventListener("click",redirectToJoin)
-document.getElementById("create-btn").addEventListener("click",redirectToCreate)
+document.getElementById("join-btn").addEventListener("click",handleJoinRoom)
+document.getElementById("create-btn").addEventListener("click",handleCreateRoom)
 
-
-function redirectToJoin() {
-    const user = document.getElementById("join-name").value
-    const id = document.getElementById("join-code").value
-    if (!user || !id) return;
-    window.location.replace(`/game?room=${encodeURIComponent(id)}&name=${encodeURIComponent(user)}`);
+function handleCreateRoom(username){
+    fetch('http://localhost:3000/rooms', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            username :username,
+        })
+    })
+    .then(res => res.json())
+    .then((data)=>{
+        window.location.replace(`/game?userId=${data.userId}`);
+    })
 }
 
 
-
-function redirectToCreate() {
-    const user = document.getElementById("create-name").value
-    if (!user ) return;
-    window.location.replace(`/game?name=${encodeURIComponent(user)}`);
+function handleJoinRoom(roomID){
+    fetch(`http://localhost:3000/rooms/${roomID}/join`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            username :username,
+        })
+    })
+    .then(res => res.json())
+    .then((data)=>{
+        window.location.replace(`/game?userId=${data.userId}`);
+    })
 }

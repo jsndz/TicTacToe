@@ -24,6 +24,7 @@ export class Hub {
         const roomId = generateRoomId();
         const users = new Map();
         const user = new User(username,roomId);
+        user.symbol = 'X';
         this.players.set(user.userId,user)
         users.set(user.userId,user);
         this.rooms.set(roomId,users);
@@ -40,7 +41,7 @@ export class Hub {
             return;
         }
         const user = new User(username,roomId)
-
+        user.symbol = 'O';
         if (room.size >= 2) {
         //   user.send(JSON.stringify({ error: "Room full" }));
           return;
@@ -60,12 +61,13 @@ export class Hub {
             user => user.userId !== senderId
           ) || null;
     }
-    move(roomID,senderId,position){
+    move(roomID,senderId,position,symbol){
         const user = this.getOtherUser(roomID,senderId);
         if (!user) return;
         user.ws.send(JSON.stringify({
             position:position,
             user:user.username,
+            symbol:symbol
         }))
     }
 }
@@ -78,10 +80,11 @@ export class User{
     userId = "";
     roomId = "";
     ws;
+    symbol="";
     constructor(username,roomId){
         this.username = username;
         this.ws = null;
-
+        this.symbol = "";
         this.roomId = roomId;
         this.userId = generateId(username);
         
@@ -104,7 +107,7 @@ export class User{
                     // take the user move and send it to the other person
                     if (!this.roomId) return;
 
-                    Hub.getInstance().move(this.roomId,this.userId,data.payload.position);
+                    Hub.getInstance().move(this.roomId,this.userId,data.payload.position,this.symbol);
                     break;
 
             }
@@ -113,15 +116,16 @@ export class User{
 
     }
 
-    destroy(){
-            const hub = Hub.getInstance();
-            const room = hub.rooms.get(this.roomId);
-            if (!room) return;
-            hub.players.delete(this.userId)
-            room.delete(this.userId);
-            if (room.size === 0) {
-            hub.deleteRoom(this.roomId);
-            }
+    destroy()
+    {
+        const hub = Hub.getInstance();
+        const room = hub.rooms.get(this.roomId);
+        if (!room) return;
+        hub.players.delete(this.userId)
+        room.delete(this.userId);
+        if (room.size === 0) {
+        hub.deleteRoom(this.roomId);
+    }
         
     }
 
