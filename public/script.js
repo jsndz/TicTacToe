@@ -1,7 +1,9 @@
 document.getElementById("join-btn").addEventListener("click",handleJoinRoom)
 document.getElementById("create-btn").addEventListener("click",handleCreateRoom)
 
-function handleCreateRoom(username){
+function handleCreateRoom(){
+    const username = document.getElementById("create-name").value;
+
     fetch('http://localhost:3000/rooms', {
         method: 'POST',
         headers: {
@@ -13,12 +15,16 @@ function handleCreateRoom(username){
     })
     .then(res => res.json())
     .then((data)=>{
-        window.location.replace(`/game?userId=${data.userId}`);
+        window.location.replace(`/game?userId=${data.userId}&roomId=${data.roomId}`);
     })
 }
 
 
-function handleJoinRoom(roomID){
+function handleJoinRoom(){
+    const username = document.getElementById("join-name").value;
+    const roomID = document.getElementById("join-code").value;
+
+    if (!username || !roomID) return;
     fetch(`http://localhost:3000/rooms/${roomID}/join`, {
         method: 'POST',
         headers: {
@@ -30,6 +36,8 @@ function handleJoinRoom(roomID){
     })
     .then(res => res.json())
     .then((data)=>{
-        window.location.replace(`/game?userId=${data.userId}`);
+        console.log(data);
+        
+        window.location.replace(`/game?userId=${data.userId}&roomId=${data.roomId}`);
     })
 }

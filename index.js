@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import http from "http";
 import { WebSocketServer } from "ws";
-import { Hub } from "./ws.js";
+import { Hub } from "./src/game/RoomManager.js";
 const app = express();
 
 const server = http.createServer(app);
@@ -18,6 +18,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/game", (req, res) => {
+  const {roomId, userId} = req.query;
+  console.log("/game",userId, roomId); 
   res.sendFile(path.join(import.meta.dirname, "public/game.html"));
 });
 
@@ -35,12 +37,15 @@ app.post("/rooms", (req, res) => {
 app.post("/rooms/:roomId/join", (req, res) => {
   const { username } = req.body;
   const { roomId } = req.params;
+console.log("/rooms/:roomId/join",username,roomId);
 
-  const result = hub.joinRoom(roomId, username);
+  const result = hub.addUser(roomId, username);
+  
   if (!result) {
     res.status(400).json({ error: "Room not found or full" });
     return;
   }
+  console.log("result",result);
 
   res.json(result);
 });
