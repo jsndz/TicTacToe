@@ -37,7 +37,7 @@ app.post("/rooms", (req, res) => {
 app.post("/rooms/:roomId/join", (req, res) => {
   const { username } = req.body;
   const { roomId } = req.params;
-console.log("/rooms/:roomId/join",username,roomId);
+  console.log("/rooms/:roomId/join",username,roomId);
 
   const result = hub.addUser(roomId, username);
   
