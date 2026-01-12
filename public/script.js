@@ -38,13 +38,10 @@ function handleJoinRoom() {
     }),
   })
     .then((res) => {
-      console.log(res);
-
-      res.json();
+      return  res.json();
     })
     .then((data) => {
-      console.log(data);
-
+      
       window.location.replace(
         `/game?userId=${data.userId}&roomId=${data.roomId}`
       );

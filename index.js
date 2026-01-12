@@ -31,6 +31,8 @@ app.post("/rooms", (req, res) => {
   }
 
   const result = hub.createRoom(username);
+  console.log(result);
+  
   res.json(result);
 });
 
@@ -39,7 +41,7 @@ app.post("/rooms/:roomId/join", (req, res) => {
   const { roomId } = req.params;
   console.log("/rooms/:roomId/join",username,roomId);
 
-  const result = hub.addUser(roomId, username);
+  const result = hub.addUser(username, roomId);
   
   if (!result) {
     res.status(400).json({ error: "Room not found or full" });

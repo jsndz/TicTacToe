@@ -1,3 +1,4 @@
+import { generateRoomId } from "../utils/utils.js";
 import { Room } from "./Room.js";
 import { User } from "./User.js";
 
@@ -17,17 +18,38 @@ export class Hub {
     return this.instance;
   }
   createRoom(username) {
+    console.log(`[RoomManager] Creating room for user: ${username}`);
     const roomId = generateRoomId();
+    console.log(`[RoomManager] Generated roomId: ${roomId}`);
     const user = new User(username, roomId);
+    console.log(`[RoomManager] Created user with userId: ${user.userId}`);
     const room = new Room(roomId);
+    console.log(`[RoomManager] Created room: ${roomId}`);
     room.addUser(user);
+    console.log(`[RoomManager] Added user to room: ${roomId}`);
+    this.rooms.set(roomId,room);
+    console.log(`[RoomManager] Stored room in rooms map. Total rooms: ${this.rooms.size}`);
     this.players.set(user.userId, user);
+    console.log(`[RoomManager] Stored user in players map. Total players: ${this.players.size}`);
+    console.log(`[RoomManager] Room creation complete. Returning roomId: ${roomId}, userId: ${user.userId}`);
     return { roomId, userId: user.userId };
   }
   addUser(username,roomId){
+    console.log(`[RoomManager] Adding user: ${username} to room: ${roomId}`);
     const user = new User(username, roomId);
+    console.log(`[RoomManager] Created user with userId: ${user.userId}`);
     this.players.set(user.userId,user);
-    this.rooms.get(roomId).addUser(user)
+    console.log(`[RoomManager] Added user to players map. Total players: ${this.players.size} ${typeof(roomId)}`);
+    const room = this.rooms.get(roomId);
+    console.log(`[RoomManager] got room: ${room}}`);
+
+    room.addUser(user);
+    console.log(`[RoomManager] Added user to room: ${roomId}`);
+    return { roomId, userId: user.userId };
+  }
+  
+  getRoom(roomId){
+    return this.rooms.get(roomId);
   }
 
   deleteRoom(id) {
@@ -38,31 +60,5 @@ export class Hub {
     return this.players.get(userId);
   }
 
-  getOtherUser(roomId, senderId) {
-    const users = this.rooms.get(roomId);
-    if (!users) return null;
-    return [...users.values()].find((user) => user.userId !== senderId) || null;
-  }
-
-  broadcast(roomId,message){
-    const players = this.rooms.get(roomId);
-    [...players.values].forEach(user => {
-      user.ws.send(
-        JSON.stringify()
-      )
-    });
-  }
-
-  move(roomID, senderId, position, symbol) {
-    const user = this.getOtherUser(roomID, senderId);
-    if (!user) return;
-    this.rooms.get(roomID).
-    user.ws.send(
-      JSON.stringify({
-        position: position,
-        user: user.username,
-        symbol: symbol,
-      })
-    );
-  }
+ 
 }

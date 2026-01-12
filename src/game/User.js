@@ -1,4 +1,5 @@
-import { Hub } from "./RoomManager";
+import { generateId } from "../utils/utils.js";
+import { Hub } from "./RoomManager.js";
 
 export class User {
   username = "";
@@ -49,6 +50,17 @@ export class User {
               },
             })
           );
+          const room = Hub.getInstance().getRoom(this.roomId);
+
+          room.getOpponent(this.userId).ws.send(JSON.stringify({
+            type: "opponent-joined",
+            payload: {
+              username: this.username,
+              userId: this.userId,
+            },
+          }));
+
+          break;
 
         case "movement":
           // take the user move and send it to the other person
