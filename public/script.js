@@ -15,11 +15,26 @@ function handleCreateRoom() {
       username: username,
     }),
   })
-    .then((res) => res.json())
+    .then(async (res) => {
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      return data;
+    })
     .then((data) => {
+      console.log(data);
+
       window.location.replace(
         `/game?userId=${data.userId}&roomId=${data.roomId}`
       );
+    })
+    .catch((err) => {
+      console.log(err);
+
+      alert(err);
     });
 }
 
@@ -37,13 +52,19 @@ function handleJoinRoom() {
       username: username,
     }),
   })
-    .then((res) => {
-      return  res.json();
+    .then(async (res) => {
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      return data;
     })
     .then((data) => {
-      
       window.location.replace(
         `/game?userId=${data.userId}&roomId=${data.roomId}`
       );
-    });
+    })
+    .catch((err) => alert(err));
 }

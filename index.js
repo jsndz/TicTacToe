@@ -19,7 +19,6 @@ app.get("/", (req, res) => {
 
 app.get("/game", (req, res) => {
   const {roomId, userId} = req.query;
-  console.log("/game",userId, roomId); 
   res.sendFile(path.join(import.meta.dirname, "public/game.html"));
 });
 
@@ -31,7 +30,6 @@ app.post("/rooms", (req, res) => {
   }
 
   const result = hub.createRoom(username);
-  console.log(result);
   
   res.json(result);
 });
@@ -39,7 +37,6 @@ app.post("/rooms", (req, res) => {
 app.post("/rooms/:roomId/join", (req, res) => {
   const { username } = req.body;
   const { roomId } = req.params;
-  console.log("/rooms/:roomId/join",username,roomId);
 
   const result = hub.addUser(username, roomId);
   
@@ -47,28 +44,30 @@ app.post("/rooms/:roomId/join", (req, res) => {
     res.status(400).json({ error: "Room not found or full" });
     return;
   }
-  console.log("result",result);
 
   res.json(result);
 });
 
+wss.on("connection", (ws, req) => {
+  console.log("WebSocket connection established, URL:", req.url);
 
-wss.on("connection", (ws,req) => {
   const params = new URL(req.url, "http://localhost").searchParams;
   const userId = params.get("userId");
 
+  console.log("Extracted userId:", userId);
+  console.log("All players in hub:", [...hub.players.keys()]);
+
   const user = hub.getUser(userId);
+
   if (!user) {
-    ws.close();
+    console.log("User not found, closing connection");
+    ws.close(1008, "User not registered");
     return;
   }
 
   user.attachWs(ws);
-  ws.on("close", () => {
-    ws.user.destroy();
-  });
 });
 
-app.listen(3000, () => {
+server.listen(3000, () => {
   console.log("Server running in http://localhost:3000");
 });

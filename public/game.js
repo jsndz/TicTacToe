@@ -7,7 +7,7 @@ let room = document.getElementById("room");
 let user = document.getElementById("user");
 let opponent = document.getElementById("opponent");
 
-const ws = new WebSocket(`ws://localhost:3000/${userId}`);
+const ws = new WebSocket(`http://localhost:3000?userId=${userId}`);
 
 ws.onopen = (ev) => {
   ws.send(
@@ -27,7 +27,7 @@ ws.onmessage = (ev) => {
   switch (data.type) {
     case "join-failed":
       alert("Incorrect UserId or RoomId");
-      this.window.location.replace("/");
+      // this.window.location.replace("/");
       break;
     case "room-joined":
       alert("User Joined Successfully");
@@ -51,7 +51,6 @@ function clickHandler() {
 //initial
 function initial() {
   var tdcells = document.getElementsByTagName("td");
-  // console.log(tdcells);
   for (i = 0; i < 9; i++) {
     tdcells[i].addEventListener("click", clickHandler);
   }

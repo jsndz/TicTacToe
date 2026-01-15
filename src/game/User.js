@@ -30,8 +30,8 @@ export class User {
       switch (data.type) {
         case "join":
           if (
-            !data.payload.userId != this.userId ||
-            !data.payload.roomId != this.roomId
+            data.payload.userId !== this.userId ||
+            data.payload.roomId !== this.roomId
           ) {
             this.ws.send(
               JSON.stringify({
@@ -51,14 +51,8 @@ export class User {
             })
           );
           const room = Hub.getInstance().getRoom(this.roomId);
-
-          room.getOpponent(this.userId).ws.send(JSON.stringify({
-            type: "opponent-joined",
-            payload: {
-              username: this.username,
-              userId: this.userId,
-            },
-          }));
+          
+          room.begin(this.userId);
 
           break;
 
@@ -86,8 +80,8 @@ export class User {
     const room = hub.rooms.get(this.roomId);
     if (!room) return;
     hub.players.delete(this.userId);
-    room.delete(this.userId);
-    if (room.size === 0) {
+    room.removeUser(this.userId);
+    if (room.users.size === 0) {
       hub.deleteRoom(this.roomId);
     }
   }

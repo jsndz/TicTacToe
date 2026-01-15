@@ -20,14 +20,42 @@ export class Room {
   addUser(user) {
     this.users.set(user.userId, user);
   }
+  removeUser(userId) {
+    
+    this.users.delete(userId);
+  }
   getOpponent(senderId) {
     return (
-      [...room.users.values()].find((user) => user.userId !== senderId) || null
+      [...this.users.values()].find((user) => user.userId !== senderId) || null
     );
   }
-
-  broadcast( message) {
+  begin(userId) {
     if (this.users.size !== 2) return;
+
+    const user1 = this.users.get(userId);
+    user1.symbol = "X";
+    const user2 = this.getOpponent(userId);
+    user2.symbol = "O";
+    user1.ws.send(
+      JSON.stringify({
+        type: "start-game",
+        payload: {
+          opponentId: user2.userId,
+          opponentName: user2.username,
+        },
+      })
+    );
+    user2.ws.send(
+      JSON.stringify({
+        type: "start-game",
+        payload: {
+          opponentId: user1.userId,
+          opponentName: user1.username,
+        },
+      })
+    );
+  }
+  broadcast(message) {
 
     const players = this.users;
     [...players.values].forEach((user) => {
