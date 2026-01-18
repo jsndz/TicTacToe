@@ -2,10 +2,16 @@ let winner = document.getElementById("winner");
 const userId = new URLSearchParams(window.location.search).get("userId");
 const roomId = new URLSearchParams(window.location.search).get("roomId");
 
-console.log("game.js", roomId, userId);
 let room = document.getElementById("room");
+
 let user = document.getElementById("user");
 let opponent = document.getElementById("opponent");
+
+let userSymbol = document.getElementById("user-symbol");
+let opponentSymbol = document.getElementById("opponent-symbol");
+
+let Id = document.getElementById("user-id");
+let opponentId = document.getElementById("opponent-id");
 
 const ws = new WebSocket(`http://localhost:3000?userId=${userId}`);
 
@@ -33,6 +39,17 @@ ws.onmessage = (ev) => {
       alert("User Joined Successfully");
       room.innerText = data.payload.roomId;
       user.innerText = data.payload.userId;
+      break;
+    case "start-game":
+      alert(
+        `Game started! Your opponent is ${data.payload.opponentName}. Your symbol: ${data.payload.yourSymbol}, Opponent's symbol: ${data.payload.opponentSymbol}`
+      );
+      opponentId.innerText = data.payload.opponentId;
+      opponentSymbol.innerText = data.payload.opponentSymbol;
+      userSymbol.innerText = data.payload.yourSymbol;
+      Id.innerText = userId;
+
+      opponent.innerText = data.payload.opponentName;
       break;
     default:
       break;

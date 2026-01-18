@@ -42,6 +42,8 @@ export class Room {
         payload: {
           opponentId: user2.userId,
           opponentName: user2.username,
+          yourSymbol:user1.symbol,
+          opponentSymbol:user2.symbol,
         },
       })
     );
@@ -51,6 +53,8 @@ export class Room {
         payload: {
           opponentId: user1.userId,
           opponentName: user1.username,
+          yourSymbol:user2.symbol,
+          opponentSymbol:user1.symbol,
         },
       })
     );

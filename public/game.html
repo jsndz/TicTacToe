@@ -1,42 +1,57 @@
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="style.css" rel ='stylesheet'>
-</head>
-<body>
-    <div>
-        <h1 class="heading">
-            Tic Tac Toe
-        </h1>
-        <h1 id="room"></h1>
-        <h1 id="user"></h1>
-        <h1 id="opponent"></h1>
-    </div>
-    <div>
-        <table id="container">
-            <tr>
-                <td index ="0"></td>
-                <td index ="1"></td>
-                <td index ="2"></td>
-            </tr>
-            <tr>
-                <td index ="3"></td>
-                <td index ="4"></td>
-                <td index ="5"></td>
-            </tr>
-            <tr>
-                <td index ="6"></td>
-                <td index ="7"></td>
-                <td index ="8"></td>
-            </tr>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+    <link href="style.css" rel="stylesheet" />
+  </head>
 
-        </table>
-        
-    </div>
-    <div id="winner"></div>
-    
-</body>
-<script src="game.js"></script>
+  <body>
+    <header>
+      <h1 id="heading">Tic Tac Toe</h1>
+      <h2 id="room"></h2>
+    </header>
+
+    <section id="info">
+      <div>
+        <h3 id="user"></h3>
+        <h3 id="user-symbol"></h3>
+        <h3 id="user-id"></h3>
+      </div>
+
+      <div>
+        <h3 id="opponent"></h3>
+        <h3 id="opponent-symbol"></h3>
+        <h3 id="opponent-id"></h3>
+      </div>
+    </section>
+
+    <main>
+      <table id="container">
+        <tr>
+          <td index="0"></td>
+          <td index="1"></td>
+          <td index="2"></td>
+        </tr>
+        <tr>
+          <td index="3"></td>
+          <td index="4"></td>
+          <td index="5"></td>
+        </tr>
+        <tr>
+          <td index="6"></td>
+          <td index="7"></td>
+          <td index="8"></td>
+        </tr>
+      </table>
+
+      <div id="winner"></div>
+    </main>
+
+    <footer>
+      <p>© 2026 Tic Tac Toe </p>
+    </footer>
+
+    <script src="game.js"></script>
+  </body>
 </html>
