@@ -4,3 +4,6 @@ export function generateId(username) {
 export function generateRoomId() {
   return (Math.random().toFixed(3) * 10000).toString();
 }
+export function opSymbol(symbol) {
+  return symbol === "X" ? "O":"X"
+}

@@ -10,6 +10,7 @@ export class User {
   constructor(username, roomId) {
     this.username = username;
     this.ws = null;
+    this.room = null;
     this.symbol = "";
     this.roomId = roomId;
     this.userId = generateId(username);
@@ -47,25 +48,21 @@ export class User {
               payload: {
                 userId: this.userId,
                 roomId: this.roomId,
+                
               },
             })
           );
           const room = Hub.getInstance().getRoom(this.roomId);
-          
+          this.room = room;
           room.begin(this.userId);
 
           break;
 
-        case "movement":
+        case "move":
           // take the user move and send it to the other person
           if (!this.roomId) return;
-
-          Hub.getInstance().move(
-            this.roomId,
-            this.userId,
-            data.payload.position,
-            this.symbol
-          );
+          
+          this.room.movement(data.payload.position,this.symbol)
           break;
 
         case "result":

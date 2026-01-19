@@ -1,4 +1,4 @@
-let winner = document.getElementById("winner");
+let situation = document.getElementById("situation");
 const userId = new URLSearchParams(window.location.search).get("userId");
 const roomId = new URLSearchParams(window.location.search).get("roomId");
 
@@ -12,9 +12,9 @@ let opponentSymbol = document.getElementById("opponent-symbol");
 
 let Id = document.getElementById("user-id");
 let opponentId = document.getElementById("opponent-id");
-
+const GameState = [];
 const ws = new WebSocket(`http://localhost:3000?userId=${userId}`);
-
+let yoursymbol;
 ws.onopen = (ev) => {
   ws.send(
     JSON.stringify({
@@ -48,9 +48,14 @@ ws.onmessage = (ev) => {
       opponentSymbol.innerText = data.payload.opponentSymbol;
       userSymbol.innerText = data.payload.yourSymbol;
       Id.innerText = userId;
-
+      yoursymbol = data.payload.yourSymbol;
       opponent.innerText = data.payload.opponentName;
+      updateUI(data.payload.state);
       break;
+    case "movement":
+      GameState = data.payload.state.game;
+      console.log(GameState);
+      updateUI(state);
     default:
       break;
   }
@@ -60,12 +65,30 @@ function clickHandler() {
   let position = td.getAttribute("index");
   ws.send(
     JSON.stringify({
-      position,
+      type: "move",
+      payload: {
+        position,
+      },
     })
   );
 }
 
-//initial
+function updateUI(state) {
+  const myTurn = state.currentTurn === yoursymbol;
+  if (myTurn) {
+    situation.innerText = "make your move";
+  } else {
+    situation.innerText = "opponent is making his move";
+  }
+  if(state.winner){
+    situation.innerText =  `winner is ${state.winner}`
+  }
+  document.querySelectorAll(".cell").forEach((cell) => {
+    cell.style.pointerEvents = myTurn ? "auto" : "none";
+    cell.classList.toggle("disabled", !myTurn);
+  });
+}
+
 function initial() {
   var tdcells = document.getElementsByTagName("td");
   for (i = 0; i < 9; i++) {

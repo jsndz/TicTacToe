@@ -1,3 +1,6 @@
+
+import { opSymbol } from "../utils/utils.js";
+
 const WinningConditions = [
   [0, 1, 2],
   [3, 4, 5],
@@ -21,7 +24,6 @@ export class Room {
     this.users.set(user.userId, user);
   }
   removeUser(userId) {
-    
     this.users.delete(userId);
   }
   getOpponent(senderId) {
@@ -42,8 +44,9 @@ export class Room {
         payload: {
           opponentId: user2.userId,
           opponentName: user2.username,
-          yourSymbol:user1.symbol,
-          opponentSymbol:user2.symbol,
+          yourSymbol: user1.symbol,
+          opponentSymbol: user2.symbol,
+          state: { currentTurn: this.currentTurn, game: this.GameState },
         },
       })
     );
@@ -53,37 +56,46 @@ export class Room {
         payload: {
           opponentId: user1.userId,
           opponentName: user1.username,
-          yourSymbol:user2.symbol,
-          opponentSymbol:user1.symbol,
+          yourSymbol: user2.symbol,
+          opponentSymbol: user1.symbol,
+          state: { currentTurn: this.currentTurn, game: this.GameState },
         },
       })
     );
   }
   broadcast(message) {
-
     const players = this.users;
-    [...players.values].forEach((user) => {
+    [...players.values()].forEach((user) => {
       user.ws.send(JSON.stringify(message));
     });
   }
 
-  move(roomID, senderId, position, symbol) {
-    const user = this.getOtherUser(roomID, senderId);
-    if (!user) return;
-    this.rooms.get(roomID).user.ws.send(
-      JSON.stringify({
-        position: position,
-        user: user.username,
-        symbol: symbol,
-      })
-    );
-  }
-  movement(position) {}
-  draw() {
-    if (!gamestate.includes("")) {
-      winner.innerHTML = "DRAW";
+  movement(position, symbol) {
+    this.GameState[position] = symbol;
+    if(this.checkwinner(symbol)){
+      this.broadcast({
+        type: "movement",
+        state: {
+          game: this.GameState,
+          currentTurn: opSymbol(symbol),
+          winner: symbol,
+        },
+      }); 
     }
+    this.broadcast({
+      type: "movement",
+      state: {
+        game: this.GameState,
+        currentTurn: opSymbol(symbol),
+      },
+    });
+
   }
+  // draw() {
+  //   if (!gamestate.includes("")) {
+  //     winner.innerHTML = "DRAW";
+  //   }
+  // }
 
   checkwinner(symbol) {
     for (let i = 0; i < 8; i++) {
@@ -92,11 +104,13 @@ export class Room {
       var c = WinningConditions[i][2];
 
       if (
-        gamestate[a] == symbol &&
-        gamestate[b] == symbol &&
-        gamestate[c] == symbol
+        this.GameState[a] == symbol &&
+        this.GameState[b] == symbol &&
+        this.GameState[c] == symbol
       ) {
+        return true;
       }
+      return false;
     }
   }
 }
