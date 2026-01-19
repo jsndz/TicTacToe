@@ -2,11 +2,6 @@ import { generateId } from "../utils/utils.js";
 import { Hub } from "./RoomManager.js";
 
 export class User {
-  username = "";
-  userId = "";
-  roomId = "";
-  ws;
-  symbol = "";
   constructor(username, roomId) {
     this.username = username;
     this.ws = null;
@@ -24,7 +19,6 @@ export class User {
       try {
         data = JSON.parse(raw.toString());
       } catch (error) {
-        console.log(error);
         return;
       }
 
@@ -54,28 +48,32 @@ export class User {
           );
           const room = Hub.getInstance().getRoom(this.roomId);
           this.room = room;
-          room.begin(this.userId);
+          room.begin();
 
           break;
 
         case "move":
           // take the user move and send it to the other person
-          if (!this.roomId) return;
-          
+          if (!this.roomId) {
+            return;
+          }
           this.room.movement(data.payload.position,this.symbol)
           break;
 
-        case "result":
-          break;
+     
       }
     });
-    ws.on("close", () => this.destroy());
+    ws.on("close", () => {
+      this.destroy();
+    });
   }
 
   destroy() {
     const hub = Hub.getInstance();
     const room = hub.rooms.get(this.roomId);
-    if (!room) return;
+    if (!room) {
+      return;
+    }
     hub.players.delete(this.userId);
     room.removeUser(this.userId);
     if (room.users.size === 0) {
@@ -84,6 +82,12 @@ export class User {
   }
 
   send(payload) {
+    let logPayload;
+    try {
+      logPayload = typeof payload === 'string' ? payload : JSON.parse(payload.toString());
+    } catch (e) {
+      logPayload = payload.toString();
+    }
     this.ws.send(payload);
   }
 }

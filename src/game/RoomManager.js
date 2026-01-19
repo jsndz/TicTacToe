@@ -27,11 +27,11 @@ export class Hub {
     return { roomId, userId: user.userId };
   }
   addUser(username, roomId) {
-    const room = this.rooms.get(roomId);
-    if(!room) return;
+    
     const user = new User(username, roomId);
     this.players.set(user.userId, user);
-    
+    const room = this.rooms.get(roomId);
+    if(!room) return;
 
     room.addUser(user);
     return { roomId, userId: user.userId };

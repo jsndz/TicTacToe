@@ -49,18 +49,15 @@ app.post("/rooms/:roomId/join", (req, res) => {
 });
 
 wss.on("connection", (ws, req) => {
-  console.log("WebSocket connection established, URL:", req.url);
 
   const params = new URL(req.url, "http://localhost").searchParams;
   const userId = params.get("userId");
 
-  console.log("Extracted userId:", userId);
-  console.log("All players in hub:", [...hub.players.keys()]);
+ 
 
   const user = hub.getUser(userId);
 
   if (!user) {
-    console.log("User not found, closing connection");
     ws.close(1008, "User not registered");
     return;
   }

@@ -1,7 +1,7 @@
 let situation = document.getElementById("situation");
-const userId = new URLSearchParams(window.location.search).get("userId");
-const roomId = new URLSearchParams(window.location.search).get("roomId");
-
+const params = new URLSearchParams(window.location.search);
+const userId = params.get("userId");
+const roomId = params.get("roomId");
 let room = document.getElementById("room");
 
 let user = document.getElementById("user");
@@ -12,7 +12,7 @@ let opponentSymbol = document.getElementById("opponent-symbol");
 
 let Id = document.getElementById("user-id");
 let opponentId = document.getElementById("opponent-id");
-const GameState = [];
+let GameState = [];
 const ws = new WebSocket(`http://localhost:3000?userId=${userId}`);
 let yoursymbol;
 ws.onopen = (ev) => {
@@ -29,6 +29,7 @@ ws.onopen = (ev) => {
 
 ws.onmessage = (ev) => {
   const data = JSON.parse(ev.data);
+console.log(ev);
 
   switch (data.type) {
     case "join-failed":
@@ -53,16 +54,20 @@ ws.onmessage = (ev) => {
       updateUI(data.payload.state);
       break;
     case "movement":
-      GameState = data.payload.state.game;
-      console.log(GameState);
-      updateUI(state);
+      console.log("GameState", data.payload.game);
+      updateUI(data.payload);
+
+      renderBoard(data.payload.game);
+      break;
     default:
       break;
   }
 };
-function clickHandler() {
+function clickHandler(event) {
   let td = event.target;
-  let position = td.getAttribute("index");
+  let position = Number(td.getAttribute("index"));
+  console.log("position", position);
+  if (GameState[position]) return;
   ws.send(
     JSON.stringify({
       type: "move",
@@ -72,16 +77,25 @@ function clickHandler() {
     })
   );
 }
+function renderBoard(game) {
+  document.querySelectorAll(".cell").forEach((cell, i) => {
+    cell.innerText = game[i] || "";
+  });
+}
 
 function updateUI(state) {
+  if (!yoursymbol) return;
+
   const myTurn = state.currentTurn === yoursymbol;
+
   if (myTurn) {
     situation.innerText = "make your move";
   } else {
     situation.innerText = "opponent is making his move";
   }
-  if(state.winner){
-    situation.innerText =  `winner is ${state.winner}`
+
+  if (state.winner) {
+    situation.innerText = `winner is ${state.winner}`;
   }
   document.querySelectorAll(".cell").forEach((cell) => {
     cell.style.pointerEvents = myTurn ? "auto" : "none";
@@ -91,7 +105,7 @@ function updateUI(state) {
 
 function initial() {
   var tdcells = document.getElementsByTagName("td");
-  for (i = 0; i < 9; i++) {
+  for (let i = 0; i < tdcells.length; i++) {
     tdcells[i].addEventListener("click", clickHandler);
   }
   room.innerHTML = roomId;
